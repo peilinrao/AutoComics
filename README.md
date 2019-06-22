@@ -1,2 +1,2 @@
-# Comics_God
+# AutoComics
 Machine learning on comics
