@@ -18,3 +18,4 @@ https://cg.cs.tsinghua.edu.cn/papers/CVPR-2018-CartoonGAN.pdf(cartoonize a photo
 https://deepart.io/(demo)
 https://towardsdatascience.com/learning-artistic-styles-from-images-fa14c60890c1(learn style from image)
 https://www.youtube.com/watch?v=Oex0eWoU7AQ(tensorflow tutorial on CNN style transfer)
+https://www.youtube.com/watch?v=LoePx3QC5Js(more detailed tutorial)
