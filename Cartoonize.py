@@ -24,4 +24,4 @@ class generator_nn(nn.Module):
           nn.ReLU()
         )
 
-        self.resnet_
+        self.resnet
