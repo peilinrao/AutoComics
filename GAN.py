@@ -6,10 +6,17 @@ import torch.optim as optim
 import numpy as np
 from torch.autograd import Variable
 
-# Input data
+
+mnist = input_data.read_data_sets('../MNIST_data', one_hot=True)
+mb_size = 64
+Z_dim = 100
+X_dim = mnist.train.images.shape[1]
+y_dim = mnist.train.labels.shape[1]
+h_dim = 128
+lr = 1e-3
 
 ###################
-# Generator network
+#Generator network
 ###################
 def xavier_init(size):
     in_dim = size[0]
