@@ -6,8 +6,8 @@ import torch.nn.functional as F
 class resnet_block(nn.Module):
     def __init__(self, nf, kernel_size, stride, padding):
         super(resnet_block, self).__init__()
-        self.channel = channel
-        self.kernel = kernel
+        self.channel = nf
+        self.kernel = kernel_size
         self.stride = stride
         self.padding = padding
 
@@ -33,7 +33,7 @@ class generator_nn(nn.Module):
         self.input_channel = in_chn
         self.output_channel = out_chn
         self.feature_num = nf
-        self.resnet_block_num = batch_size
+        self.resnet_block_num = nb
 
         # down-convolution
         self.down_conv = nn.Sequential(
@@ -73,7 +73,7 @@ class generator_nn(nn.Module):
             nn.Tanh(),
         )
 
-        util.initialize_weights(self)
+        utils.initialize_weights(self)
 
     def forward(self, input):
         temp = self.down_conv(input)
