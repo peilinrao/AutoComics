@@ -1,4 +1,5 @@
 import torch
+import utils
 import torch.nn as nn
 
 class discriminator(nn.Module):
