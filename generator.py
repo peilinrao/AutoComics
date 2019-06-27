@@ -12,11 +12,11 @@ class resnet_block(nn.Module):
         self.padding = padding
 
         self.conv = nn.Sequential(
-            nn.Conv2d(nf, nf, kernel_size, stride, padding)
-            nn.InstanceNorm2d(nf)
-            nn.ReLU(True)
-            nn.Conv2d(nf, nf, kernel_size, stride, padding)
-            nn.InstanceNorm2d(nf)
+            nn.Conv2d(nf, nf, kernel_size, stride, padding),
+            nn.InstanceNorm2d(nf),
+            nn.ReLU(True),
+            nn.Conv2d(nf, nf, kernel_size, stride, padding),
+            nn.InstanceNorm2d(nf),
         )
 
         utils.initialize_weights(self)
@@ -35,14 +35,14 @@ class generator_nn(nn.Module):
         self.feature_num = nf
         self.resnet_block_num = batch_size
 
-        # down-convolution 
+        # down-convolution
         self.down_conv = nn.Sequential(
           nn.Conv2d(in_chn, nf, kernel_size=7, stride=1, padding = 1),
           nn.InstanceNorm2d(nf),
           nn.ReLU(True),
           nn.Conv2d(nf * 1, nf * 2, kernel_size=3, stride=2, padding = 1),
           nn.Conv2d(nf * 2, nf * 2, kernel_size=3, stride=1, padding = 1),
-          nn.ReLU(True)
+          nn.ReLU(True),
           nn.Conv2d(nf * 2, nf * 4, kernel_size=3, stride=2, padding = 1),
           nn.Conv2d(nf * 4, nf * 4, kernel_size=3, stride=1, padding = 1),
           nn.InstanceNorm2d(nf * 4),
@@ -61,16 +61,16 @@ class generator_nn(nn.Module):
 
         # up-convolution
         self.up_conv = nn.Sequential(
-            nn.ConvTranspose2d(nf * 4, nf * 2, 3, 2, 1, 1)
-            nn.Conv2d(nf * 2, nf * 2, kernel_size=3, stride=1, padding=1)
+            nn.ConvTranspose2d(nf * 4, nf * 2, 3, 2, 1, 1),
+            nn.Conv2d(nf * 2, nf * 2, kernel_size=3, stride=1, padding=1),
             nn.InstanceNorm2d(nf * 2),
             nn.ReLU(True),
-            nn.ConvTranspose2d(nf * 2, nf, 3, 2, 1, 1)
-            nn.Conv2d(nf, nf, kernel_size=3, stride=1, padding=1)
+            nn.ConvTranspose2d(nf * 2, nf, 3, 2, 1, 1),
+            nn.Conv2d(nf, nf, kernel_size=3, stride=1, padding=1),
             nn.InstanceNorm2d(nf),
             nn.ReLU(True),
-            nn.Conv2d(nf, out_chn, kernel_size=7, stride=1, padding=3)
-            nn.Tanh()
+            nn.Conv2d(nf, out_chn, kernel_size=7, stride=1, padding=3),
+            nn.Tanh(),
         )
 
         util.initialize_weights(self)
