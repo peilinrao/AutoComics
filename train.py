@@ -31,6 +31,12 @@ def get_vgg19(nf, pretrained,path):
     )
     return net
 
+# load_training_set():
+# Example:
+#    for batch_idx, (data, target) in enumerate(anime_dataset):
+#           batch_idx = whicj batch you are dealing
+#           data 64 * 3 * 693 * 1280 tensor
+#           target = list of size 64, tell whether 0 or 1, figure/nonfigure
 def load_training_set(data_path):
     train_dataset = torchvision.datasets.ImageFolder(
         root = data_path,
@@ -68,4 +74,3 @@ Discriminator_optimizer = optims.Adam(Discriminator_model.parameters(), lr = LEA
 
 anime_dataset = load_training_set("training_set")
 #target
-# for batch_idx, (data, target) in enumerate(anime_dataset):
