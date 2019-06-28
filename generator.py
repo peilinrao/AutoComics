@@ -1,5 +1,5 @@
 import torch
-import utils
+import helpers
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -19,7 +19,7 @@ class resnet_block(nn.Module):
             nn.InstanceNorm2d(nf),
         )
 
-        utils.initialize_weights(self)
+        helpers.initialize_weights(self)
 
     def forward(self, input):
         output = input + self.conv(input)
@@ -73,7 +73,7 @@ class generator_nn(nn.Module):
             nn.Tanh(),
         )
 
-        utils.initialize_weights(self)
+        helpers.initialize_weights(self)
 
     def forward(self, input):
         temp = self.down_conv(input)
