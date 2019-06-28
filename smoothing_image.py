@@ -39,6 +39,6 @@ def smooth_directory(in_dir, out_dir, filter_pix=5):
         )
 
 # example of parameters
-in_dir = '\\Users\calin\Desktop\AutoComics\data'
-out_dir = '\\Users\calin\Desktop\AutoComics\\test' # utf-8 uses \\U, \\t
-smooth_directory(in_dir, out_dir, filter_pix=5)
+in_dir = '\\Users\calin\Desktop\AutoComics\data\\Totoro_raw'
+out_dir = '\\Users\calin\Desktop\AutoComics\data\\Totoro_smooth_pix3' # utf-8 uses \\U, \\t
+smooth_directory(in_dir, out_dir, filter_pix=3)

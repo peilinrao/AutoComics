@@ -88,9 +88,12 @@ def train(weight_path, w, h, batch_size, train_size, model):
 # raw picture size: w, h = 1290, 692
 w, h = 430, 230
 batch_size = 16
-fig_size = len(next(os.walk('data/train/figure'))[2])
-nonfig_size = len(next(os.walk('data/train/nonfigure'))[2])
+'''
+fig_size = len(next(os.walk('\\Users\calin\Desktop\AutoComics\Figure-Recognition\data\\train\figure'))[2])
+nonfig_size = len(next(os.walk('\\Users\calin\Desktop\AutoComics\Figure-Recognition\data\\train\nonfigure'))[2])
 train_size = (fig_size + nonfig_size)*5
+'''
+train_size = 436 * 5
 model = build_model()
 
 ##train('figure_recog_v3.h5', w, h, batch_size, train_size, model)
@@ -99,16 +102,11 @@ model = build_model()
 # 2. apply figure recognition  #
 ################################
 
-model.load_weights('figure_recog_v2.h5')
-
-sample_dir = 'Totoro'
-dir_list = os.listdir(sample_dir)
-n_pred = len(dir_list)
-output_dir = 'pred_v2' # a directory that contains 2 subdirectories: figure, nonfigure
-
-def apply_recognition(sample_dir, dir_list, output_dir):
+def apply_recognition(sample_dir, output_dir):
+    
+    dir_list = os.listdir(sample_dir)
+    
     for f in dir_list:
-        
         if os.path.isfile(output_dir+'/figure/'+f) or os.path.isfile(output_dir+'/nonfigure/'+f):
     ##        print(f+' already exists')
             continue
@@ -140,5 +138,10 @@ def apply_recognition(sample_dir, dir_list, output_dir):
             time.sleep(5)
             os.remove('temp/figure/'+f)
 
-apply_recognition(sample_dir, dir_list, output_dir)
+model.load_weights('boolFigure_v3.h5')
+
+sample_dir = '\\Users\calin\Desktop\AutoComics\data\\Totoro_smooth_pix3'
+output_dir = '\\Users\calin\Desktop\AutoComics\data' # a directory that contains 2 subdirectories: figure, nonfigure
+
+apply_recognition(sample_dir, output_dir)
 
