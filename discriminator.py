@@ -1,11 +1,11 @@
 import torch
-import utils
+import helpers
 import torch.nn as nn
 
 class discriminator_nn(nn.Module):
     # initializers
     def __init__(self, in_chn, out_chn, n=32):
-        super(discriminator, self).__init__()
+        super(discriminator_nn, self).__init__()
         self.input_channel = in_chn
         self.output_channel = out_chn
         self.layer_input_size = n
@@ -29,7 +29,7 @@ class discriminator_nn(nn.Module):
             nn.Sigmoid()
         )
 
-        utils.initialize_weights(self)
+        helpers.initialize_weights(self)
 
     # forward method
     def forward(self, input):
