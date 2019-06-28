@@ -2,7 +2,7 @@ import torch
 import utils
 import torch.nn as nn
 
-class discriminator(nn.Module):
+class discriminator_nn(nn.Module):
     # initializers
     def __init__(self, in_chn, out_chn, n=32):
         super(discriminator, self).__init__()
