@@ -49,17 +49,23 @@ def load_training_set(data_path):
 #################
 Generator_model = generator.generator_nn(3,3)
 Discriminator_model = discriminator.discriminator_nn(3,1)
+Generator_model.train()
+Discriminator_model.train()
+VGG_model = get_vgg19(16, True, "vgg19-dcbb9e9d.pth")
 BCE_loss = nn.BCELoss()
 L1_loss = nn.L1Loss()
 Generator_optimizer = optims.Adam(Generator_model.parameters(), lr = LEARNING_RATE_G, betas = (0.5, 0.999))
-Discriminator_model = optims.Adam(Discriminator_model.parameters(), lr = LEARNING_RATE_D, betas = (0.5, 0.999))
+Discriminator_optimizer = optims.Adam(Discriminator_model.parameters(), lr = LEARNING_RATE_D, betas = (0.5, 0.999))
 
 
 #################
-#Testing field
+# Testing field
 #################
-# print(get_vgg19(16, True, "vgg19-dcbb9e9d.pth"))
-anime_figure_dataset = load_training_set("training_set")
-print(len(anime_figure_dataset))
-for batch_idx, (data, target) in enumerate(anime_figure_dataset):
-    print(data, target)
+
+#################
+# Model running
+#################
+
+anime_dataset = load_training_set("training_set")
+#target
+# for batch_idx, (data, target) in enumerate(anime_dataset):
