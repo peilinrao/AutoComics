@@ -53,15 +53,15 @@ def load_training_set(data_path):
 #################
 # Model building
 #################
-Generator_model = generator.generator_nn(3,3)
-Discriminator_model = discriminator.discriminator_nn(3,1)
-Generator_model.train()
-Discriminator_model.train()
+G = generator.generator_nn(3,3)
+D = discriminator.discriminator_nn(3,1)
+G.train()
+D.train()
 VGG_model = get_vgg19(16, True, "vgg19-dcbb9e9d.pth")
 BCE_loss = nn.BCELoss()
 L1_loss = nn.L1Loss()
-Generator_optimizer = optims.Adam(Generator_model.parameters(), lr = LEARNING_RATE_G, betas = (0.5, 0.999))
-Discriminator_optimizer = optims.Adam(Discriminator_model.parameters(), lr = LEARNING_RATE_D, betas = (0.5, 0.999))
+G_optimizer = optims.Adam(G.parameters(), lr = LEARNING_RATE_G, betas = (0.5, 0.999))
+D_optimizer = optims.Adam(D.parameters(), lr = LEARNING_RATE_D, betas = (0.5, 0.999))
 
 
 #################
