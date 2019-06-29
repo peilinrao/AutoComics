@@ -27,7 +27,7 @@ class resnet_block(nn.Module):
         return output
 
 class generator_nn(nn.Module):
-    def __init__(self, in_chn, out_chn, nf=64, nb=8):
+    def __init__(self, in_chn, out_chn, nf=16, nb=8):
         # parameters
         super(generator_nn, self).__init__()
         self.input_channel = in_chn

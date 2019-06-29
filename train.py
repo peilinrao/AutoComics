@@ -10,6 +10,7 @@ import generator
 import discriminator
 import helpers
 import sys
+from tqdm import tqdm
 
 LEARNING_RATE_G = 0.002
 LEARNING_RATE_D = 0.002
@@ -80,20 +81,21 @@ D_optim = optims.Adam(D.parameters(), lr = LEARNING_RATE_D)
 # Model pretraining with VGG #
 ##############################
 if need_pretraining == 1:
-    anime_dataset = load_training_set("training_set/nonfiure_anime_totoro")
+    anime_dataset = load_training_set("training_set/nonfigure_anime_test")
     #target
-    print(len(anime_dataset))
     for epoch in range(10):
+        print("Starting epoch",epoch,"/10")
         for batch_idx, (data, target) in enumerate(anime_dataset):
-            G_optimizer.zero_grad()
+            print("Starting batch",batch_idx, "/",len(anime_dataset))
+            G_optim.zero_grad()
             x_val = VGG_model(data)
             G_val = VGG_model(G(data))
             loss = L1_loss(G_val, x_val)
             loss.backward()
             G_optim.step()
 
-        print("model_pretrained for epoch",epoch,"now saving it")
-        torch.save(G.state_dict_dict(), "pretrained_G.pt")
+        print("model pretrained for epoch",epoch,"now saving it")
+        torch.save(G.state_dict(), "pretrained_G_test.pt")
 
 
 # put this part before pre-training model

@@ -4,7 +4,7 @@ import torch.nn as nn
 
 class discriminator_nn(nn.Module):
     # initializers
-    def __init__(self, in_chn, out_chn, n=32):
+    def __init__(self, in_chn, out_chn, n=16):
         super(discriminator_nn, self).__init__()
         self.input_channel = in_chn
         self.output_channel = out_chn
