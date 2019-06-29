@@ -31,6 +31,8 @@ def get_vgg19(nf, pretrained,path):
     )
     return net
 
+
+
 # load_training_set():
 # Example:
 #    for batch_idx, (data, target) in enumerate(anime_dataset):
@@ -40,11 +42,14 @@ def get_vgg19(nf, pretrained,path):
 def load_training_set(data_path):
     train_dataset = torchvision.datasets.ImageFolder(
         root = data_path,
-        transform = torchvision.transforms.ToTensor()
+        transform = torchvision.transforms.Compose([
+            torchvision.transforms.Resize((256,256)),
+            torchvision.transforms.ToTensor()
+            ])
     )
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
-        batch_size=64,
+        batch_size=8,
         num_workers=0,
         shuffle=True
     )
@@ -60,8 +65,8 @@ D.train()
 VGG_model = get_vgg19(16, True, "vgg19-dcbb9e9d.pth")
 BCE_loss = nn.BCELoss()
 L1_loss = nn.L1Loss()
-G_optimizer = optims.Adam(G.parameters(), lr = LEARNING_RATE_G, betas = (0.5, 0.999))
-D_optimizer = optims.Adam(D.parameters(), lr = LEARNING_RATE_D, betas = (0.5, 0.999))
+Generator_optimizer = optims.Adam(G.parameters(), lr = LEARNING_RATE_G, betas = (0.5, 0.999))
+Discriminator_optimizer = optims.Adam(D.parameters(), lr = LEARNING_RATE_D, betas = (0.5, 0.999))
 
 
 #################
@@ -74,3 +79,13 @@ D_optimizer = optims.Adam(D.parameters(), lr = LEARNING_RATE_D, betas = (0.5, 0.
 
 anime_dataset = load_training_set("training_set")
 #target
+print(len(anime_dataset))
+for epoch in range(10):
+    for batch_idx, (data, target) in enumerate(anime_dataset):
+        G_optimizer.zero_grad()
+        x_val = VGG_model(data)
+        G_val = VGG_model(G(data))
+
+        loss = L1_loss(G_val, x_val)
+
+        break

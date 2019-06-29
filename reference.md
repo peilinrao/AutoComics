@@ -20,6 +20,7 @@ https://towardsdatascience.com/learning-artistic-styles-from-images-fa14c60890c1
 https://www.youtube.com/watch?v=Oex0eWoU7AQ(tensorflow tutorial on CNN style transfer)
 https://www.youtube.com/watch?v=LoePx3QC5Js(more detailed tutorial)
 http://openaccess.thecvf.com/content_cvpr_2018/papers/Chen_CartoonGAN_Generative_Adversarial_CVPR_2018_paper.pdf (ml on cartoonist)
-https://leemeng.tw/generate-anime-using-cartoongan-and-tensorflow2.html (生成新海诚 宫崎骏照片)
+https://leemeng.tw/generate-anime-using-cartoongan-and-tensorflow2.html (Draw like Makoto Shinkai and Miyazaki Hayao)
 https://wiseodd.github.io/techblog/2017/01/20/gan-pytorch/ (GAN pytorch)
 http://arti.vub.ac.be/research/colour/data/imagesets.zip(database)
+http://cvcl.mit.edu/database.htm (MIT)
