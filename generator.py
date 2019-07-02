@@ -37,7 +37,7 @@ class generator_nn(nn.Module):
 
         # down-convolution
         self.down_conv = nn.Sequential(
-          nn.Conv2d(in_chn, nf, kernel_size=7, stride=1, padding = 1),
+          nn.Conv2d(in_chn, nf, kernel_size=7, stride=1, padding = 3),
           nn.InstanceNorm2d(nf),
           nn.ReLU(True),
           nn.Conv2d(nf * 1, nf * 2, kernel_size=3, stride=2, padding = 1),

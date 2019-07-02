@@ -14,6 +14,10 @@ from tqdm import tqdm
 
 LEARNING_RATE_G = 0.002
 LEARNING_RATE_D = 0.002
+IMAGE_SIZE = 256
+BATCH_SIZE = 8
+num_epoch_pretrain = 10
+num_epoch_train = 10
 
 ####################
 # Helper functions #
@@ -29,7 +33,7 @@ def get_vgg19(nf, pretrained,path):
         nn.Linear(4096,4096),
         nn.ReLU(True),
         nn.Dropout(),
-        nn.Linear(4096, nf),
+        nn.Linear(4096, nf)
     )
     return net
 
@@ -43,13 +47,13 @@ def load_training_set(data_path):
     train_dataset = torchvision.datasets.ImageFolder(
         root = data_path,
         transform = torchvision.transforms.Compose([
-            torchvision.transforms.Resize((256,256)),
+            torchvision.transforms.Resize((IMAGE_SIZE,IMAGE_SIZE)),
             torchvision.transforms.ToTensor()
             ])
     )
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
-        batch_size=8,
+        batch_size=BATCH_SIZE,
         num_workers=0,
         shuffle=True
     )
@@ -66,7 +70,8 @@ except:
 
 G = generator.generator_nn(3,3)
 if need_pretraining == 0:
-        G.load_state_dict(torch.load("pretrained_G.pt"))
+        G.load_state_dict(torch.load("pretrained_G_test.pt"))
+        print("Pretrained model loaded!")
 D = discriminator.discriminator_nn(3,1)
 G.train()
 D.train()
@@ -83,8 +88,8 @@ D_optim = optims.Adam(D.parameters(), lr = LEARNING_RATE_D)
 if need_pretraining == 1:
     anime_dataset = load_training_set("training_set/nonfigure_anime_test")
     #target
-    for epoch in range(10):
-        print("Starting epoch",epoch,"/10")
+    for epoch in range(num_epoch_pretrain):
+        print("Starting epoch",epoch,"/",num_epoch_train)
         for batch_idx, (data, target) in enumerate(anime_dataset):
             print("Starting batch",batch_idx, "/",len(anime_dataset))
             G_optim.zero_grad()
@@ -98,35 +103,31 @@ if need_pretraining == 1:
         torch.save(G.state_dict(), "pretrained_G_test.pt")
 
 
-# put this part before pre-training model
-
-train_anime = load_training_set('nonfiure path')
-train_real_scenery = load_training_set('real_scenery path')
+##################
+# Model Training #
+##################
+anime_dataset = load_training_set("training_test/nonfigure_anime_test")
+train_real_scenery = load_training_set('training_test/nonfigure_realworld_test')
 
 # put this part of code into the main function
 
 # initialize zero and one matrix
-real = torch.ones(batch_size, 1, input_size // 4, input_size // 4)
-fake = torch.zeros(batch_size, 1, input_size // 4, input_size // 4)
-
-for epoch in range(num_epoch):
+real = torch.ones(BATCH_SIZE, 1, 64, 64)
+fake = torch.zeros(BATCH_SIZE, 1, 64, 64)
+print("model training begins")
+for epoch in range(num_epoch_train):
     # pre-train data
     G.train()
 
     # train discriminator
     # zip(iterator) returns an interator of tuples
-    for (x, _), (y, _) in zip(train_anime, train_real_scenery):
-        # x : anime input
-        # y : real_scenery input (center)
-        # e : real_scenery input (edge)
-        e = y[:, :, :, args.input_size:]
-        y = y[:, :, :, :args.input_size]
-
+    print("epoch info:",epoch,"/",num_epoch_train)
+    for (x, _), (y, _) in zip(anime_dataset, train_real_scenery):
+        print("batch info:",epoch,"/",num_epoch_train)
         # 1. train discriminator D
         # initialize gradients
-        D_optimizer.zero_grad()
-
-        # train on real
+        print("starting training")
+        D_optim.zero_grad()
         d_real = D(y)
         dr_loss = BCE_loss(d_real, real)
 
@@ -134,32 +135,28 @@ for epoch in range(num_epoch):
         d_fake = D(G(x))
         df_loss = BCE_loss(d_fake, fake)
 
-        # train on edge
-        d_edge = D(e)
-        de_loss = BCE_loss(d_edge, fake)
-
         # sum up loss function to dicriminator loss
-        D_loss = dr_loss + df_loss + de_loss
+        D_loss = dr_loss + df_loss
         D_loss.backward()
-        d_optimizer.step()
+        D_optim.step()
 
         # 2. train generator G
-        G_optmizer.zero_grad()
+        G_optim.zero_grad()
 
         # adverserial loss
         d_fake = D(G(x))
         adv_loss = BCE_loss(d_fake, real)
 
         # content loss (sth i dont know at all)
-        x_feature = VGG((x + 1) / 2)
-        G_feature = VGG((G(x) + 1) / 2)
+        x_feature = VGG_model((x + 1) / 2)
+        G_feature = VGG_model((G(x) + 1) / 2)
         con_loss = L1_loss(G_feature, x_feature)
 
         # sum up generator loss function
         G_loss = adv_loss + con_loss
         G_loss.backward()
-        G_optimizer.step()
+        G_optim.step()
 
 # save parameters of G and D
-torch.save(G.state_dict(), 'generator_param_v1.pkl')
-torch.save(D.state_dict(), 'discriminator_param_v1.pkl')
+torch.save(G.state_dict(), 'generator_param_.pt')
+torch.save(D.state_dict(), 'discriminator_param.pt')
