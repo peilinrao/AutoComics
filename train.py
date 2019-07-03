@@ -17,7 +17,7 @@ LEARNING_RATE_D = 0.002
 IMAGE_SIZE = 256
 BATCH_SIZE = 8
 num_epoch_pretrain = 10
-num_epoch_train = 10
+num_epoch_train = 100
 
 ####################
 # Helper functions #
@@ -86,10 +86,11 @@ D_optim = optims.Adam(D.parameters(), lr = LEARNING_RATE_D)
 # Model pretraining with VGG #
 ##############################
 if need_pretraining == 1:
-    anime_dataset = load_training_set("training_set/nonfigure_anime_test")
+    print("pretraining")
+    anime_dataset = load_training_set("training_test/nonfigure_anime_test")
     #target
     for epoch in range(num_epoch_pretrain):
-        print("Starting epoch",epoch,"/",num_epoch_train)
+        print("Starting epoch",epoch,"/",num_epoch_pretrain)
         for batch_idx, (data, target) in enumerate(anime_dataset):
             print("Starting batch",batch_idx, "/",len(anime_dataset))
             G_optim.zero_grad()
@@ -122,41 +123,46 @@ for epoch in range(num_epoch_train):
     # train discriminator
     # zip(iterator) returns an interator of tuples
     print("epoch info:",epoch,"/",num_epoch_train)
+    count = 0
     for (x, _), (y, _) in zip(anime_dataset, train_real_scenery):
-        print("batch info:",epoch,"/",num_epoch_train)
+        print("batch info:",count)
+        count+=1
         # 1. train discriminator D
         # initialize gradients
         print("starting training")
-        D_optim.zero_grad()
-        d_real = D(y)
-        dr_loss = BCE_loss(d_real, real)
+        try:
+            D_optim.zero_grad()
+            d_real = D(y)
+            dr_loss = BCE_loss(d_real, real)
 
-        # train on fake
-        d_fake = D(G(x))
-        df_loss = BCE_loss(d_fake, fake)
+            # train on fake
+            d_fake = D(G(x))
+            df_loss = BCE_loss(d_fake, fake)
 
-        # sum up loss function to dicriminator loss
-        D_loss = dr_loss + df_loss
-        D_loss.backward()
-        D_optim.step()
+            # sum up loss function to dicriminator loss
+            D_loss = dr_loss + df_loss
+            D_loss.backward()
+            D_optim.step()
 
-        # 2. train generator G
-        G_optim.zero_grad()
+            # 2. train generator G
+            G_optim.zero_grad()
 
-        # adverserial loss
-        d_fake = D(G(x))
-        adv_loss = BCE_loss(d_fake, real)
+            # adverserial loss
+            d_fake = D(G(x))
+            adv_loss = BCE_loss(d_fake, real)
 
-        # content loss (sth i dont know at all)
-        x_feature = VGG_model((x + 1) / 2)
-        G_feature = VGG_model((G(x) + 1) / 2)
-        con_loss = L1_loss(G_feature, x_feature)
+            # content loss (sth i dont know at all)
+            x_feature = VGG_model((x + 1) / 2)
+            G_feature = VGG_model((G(x) + 1) / 2)
+            con_loss = L1_loss(G_feature, x_feature)
 
-        # sum up generator loss function
-        G_loss = adv_loss + con_loss
-        G_loss.backward()
-        G_optim.step()
+            # sum up generator loss function
+            G_loss = adv_loss + con_loss
+            G_loss.backward()
+            G_optim.step()
+        except:
+            continue
 
-# save parameters of G and D
-torch.save(G.state_dict(), 'generator_param_.pt')
-torch.save(D.state_dict(), 'discriminator_param.pt')
+    # save parameters of G and D
+    torch.save(G.state_dict(), 'generator_param.pt')
+    torch.save(D.state_dict(), 'discriminator_param.pt')
