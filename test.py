@@ -10,15 +10,11 @@ from PIL import Image
 from torchvision.transforms import ToTensor
 from torchvision.transforms import ToPILImage
 import matplotlib.pyplot as plt
-import generator
-import discriminator
-import helpers
+import models
 import sys
 
 
 # See how the trained network perform
-
-
 G = generator.generator_nn(3,3)
 G.load_state_dict(torch.load("generator_param.pt"))
 

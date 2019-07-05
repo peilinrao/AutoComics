@@ -60,17 +60,11 @@ def load_training_set(data_path):
 ########################
 # Model initialization #
 ########################
-#if need_pretraining == 1, train the generator
-try:
-    need_pretraining = int(sys.argv[1])
-except:
-    need_pretraining = 0
 
 G = generator.generator_nn(3,3)
-if need_pretraining == 0:
-        G.load_state_dict(torch.load("pretrained_G_test.pt"))
-        print("Pretrained model loaded!")
 D = discriminator.discriminator_nn(3,1)
+G.load_state_dict(torch.load("generator_param.pt"))
+D.load_state_dict(torch.load("discriminator_param.pt"))
 G.train()
 D.train()
 VGG_model = get_vgg19(16, True, "vgg19-dcbb9e9d.pth")
@@ -78,28 +72,6 @@ BCE_loss = nn.BCELoss()
 L1_loss = nn.L1Loss()
 G_optim = optims.Adam(G.parameters(), lr = LEARNING_RATE_G)
 D_optim = optims.Adam(D.parameters(), lr = LEARNING_RATE_D)
-
-
-##############################
-# Model pretraining with VGG #
-##############################
-if need_pretraining == 1:
-    print("pretraining")
-    anime_dataset = load_training_set("training_test/nonfigure_anime_test")
-    #target
-    for epoch in range(num_epoch_pretrain):
-        print("Starting epoch",epoch,"/",num_epoch_pretrain)
-        for batch_idx, (data, target) in enumerate(anime_dataset):
-            print("Starting batch",batch_idx, "/",len(anime_dataset))
-            G_optim.zero_grad()
-            x_val = VGG_model(data)
-            G_val = VGG_model(G(data))
-            loss = L1_loss(G_val, x_val)
-            loss.backward()
-            G_optim.step()
-
-        print("model pretrained for epoch",epoch,"now saving it")
-        torch.save(G.state_dict(), "pretrained_G_test.pt")
 
 
 ##################
@@ -123,7 +95,7 @@ for epoch in range(num_epoch_train):
     print("epoch info:",epoch,"/",num_epoch_train)
     count = 0
     for (x, _), (y, _) in zip(anime_dataset, train_real_scenery):
-        print("batch info:",count)
+        print("batch num:",count)
         count+=1
         # 1. train discriminator D
         # initialize gradients
@@ -158,7 +130,12 @@ for epoch in range(num_epoch_train):
             G_loss = adv_loss + con_loss
             G_loss.backward()
             G_optim.step()
+
+            print("adv loss:",adv_loss)
+            print("con loss:", con_loss)
+            print("G loss:", G_loss)
         except:
+            print("Some exception happened, but we ignore that")
             continue
 
     # save parameters of G and D

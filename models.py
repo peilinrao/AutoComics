@@ -1,8 +1,61 @@
 import torch
-import helpers
 import torch.nn as nn
 import torch.nn.functional as F
 
+# initialize weights of layers
+def initialize_weights(networks):
+    for m in networks.modules():
+        if isinstance(m, nn.Conv2d):
+            m.weight.data.normal_(0, 0.02)
+            m.bias.data.zero_()
+        elif isinstance(m, nn.ConvTranspose2d):
+            m.weight.data.normal_(0, 0.02)
+            m.bias.data.zero_()
+        elif isinstance(m, nn.Linear):
+            m.weight.data.normal_(0, 0.02)
+            m.bias.data.zero_()
+        elif isinstance(m, nn.BatchNorm2d):
+            m.weight.data.fill_(1)
+            m.bias.data.zero_()
+
+
+# Set up discriminator model
+class discriminator_nn(nn.Module):
+    # initializers
+    def __init__(self, in_chn, out_chn, n=16):
+        super(discriminator_nn, self).__init__()
+        self.input_channel = in_chn
+        self.output_channel = out_chn
+        self.layer_input_size = n
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_chn, n * 1, kernel_size=3, stride=1, padding=1),
+            nn.LeakyReLU(0.2, True),
+            nn.Conv2d(n * 1, n * 2, kernel_size=3, stride=2, padding=1),
+            nn.LeakyReLU(0.2, True),
+            nn.Conv2d(n * 2, n * 4, kernel_size=3, stride=1, padding=1),
+            nn.InstanceNorm2d(n * 4),
+            nn.LeakyReLU(0.2, True),
+            nn.Conv2d(n * 4, n * 4, kernel_size=3, stride=2, padding=1),
+            nn.LeakyReLU(0.2, True),
+            nn.Conv2d(n * 4, n * 8, kernel_size=3, stride=1, padding=1),
+            nn.InstanceNorm2d(n * 4),
+            nn.LeakyReLU(0.2, True),
+            nn.Conv2d(n * 8, n * 8, kernel_size=3, stride=1, padding=1),
+            nn.InstanceNorm2d(n * 4),
+            nn.LeakyReLU(0.2, True),
+            nn.Conv2d(n * 8, out_chn, kernel_size=3, stride=1, padding=1),
+            nn.Sigmoid()
+        )
+
+        helpers.initialize_weights(self)
+
+    # forward method
+    def forward(self, input):
+        output = self.conv(input)
+        return output
+
+
+# Set up helper for generator model
 class resnet_block(nn.Module):
     def __init__(self, nf, kernel_size, stride, padding):
         super(resnet_block, self).__init__()
@@ -26,6 +79,7 @@ class resnet_block(nn.Module):
 
         return output
 
+# Set up generator model
 class generator_nn(nn.Module):
     def __init__(self, in_chn, out_chn, nf=16, nb=8):
         # parameters
