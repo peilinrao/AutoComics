@@ -1,6 +1,39 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision
+import torch.autograd as autograd
+import torch.optim as optims
+import numpy as np
+from torch.autograd import Variable
+
+BATCH_SIZE = 8
+IMAGE_SIZE = 256
+####################
+# Helper functions #
+####################
+print("models loaded")
+# load_training_set():
+# Example:
+#    for batch_idx, (data, target) in enumerate(anime_dataset):
+#           batch_idx = whicj batch you are dealing
+#           data 64 * 3 * 693 * 1280 tensor
+#           target = list of size 64, tell whether 0 or 1, figure/nonfigure
+def load_training_set(data_path):
+    train_dataset = torchvision.datasets.ImageFolder(
+        root = data_path,
+        transform = torchvision.transforms.Compose([
+            torchvision.transforms.Resize((IMAGE_SIZE,IMAGE_SIZE)),
+            torchvision.transforms.ToTensor()
+            ])
+    )
+    train_loader = torch.utils.data.DataLoader(
+        train_dataset,
+        batch_size=BATCH_SIZE,
+        num_workers=0,
+        shuffle=True
+    )
+    return train_loader
 
 # initialize weights of layers
 def initialize_weights(networks):
@@ -18,11 +51,28 @@ def initialize_weights(networks):
             m.weight.data.fill_(1)
             m.bias.data.zero_()
 
+def get_vgg19(nf, pretrained,path):
+    net= torchvision.models.vgg19()
+    if pretrained:
+        net.load_state_dict(torch.load(path))
+    net.classifier = nn.Sequential(
+        nn.Linear(512 * 7 * 7, 4096),
+        nn.ReLU(True),
+        nn.Dropout(),
+        nn.Linear(4096,4096),
+        nn.ReLU(True),
+        nn.Dropout(),
+        nn.Linear(4096, nf)
+    )
+    return net
 
-# Set up discriminator model
+
+#######################
+# discriminator model #
+#######################
 class discriminator_nn(nn.Module):
     # initializers
-    def __init__(self, in_chn, out_chn, n=16):
+    def __init__(self, in_chn, out_chn, n=64):
         super(discriminator_nn, self).__init__()
         self.input_channel = in_chn
         self.output_channel = out_chn
@@ -47,15 +97,17 @@ class discriminator_nn(nn.Module):
             nn.Sigmoid()
         )
 
-        helpers.initialize_weights(self)
+        initialize_weights(self)
 
     # forward method
     def forward(self, input):
         output = self.conv(input)
         return output
 
-
-# Set up helper for generator model
+###################
+# generator model #
+###################
+# Set up resnet_block for generator model
 class resnet_block(nn.Module):
     def __init__(self, nf, kernel_size, stride, padding):
         super(resnet_block, self).__init__()
@@ -69,10 +121,10 @@ class resnet_block(nn.Module):
             nn.InstanceNorm2d(nf),
             nn.ReLU(True),
             nn.Conv2d(nf, nf, kernel_size, stride, padding),
-            nn.InstanceNorm2d(nf),
+            nn.InstanceNorm2d(nf)
         )
 
-        helpers.initialize_weights(self)
+        initialize_weights(self)
 
     def forward(self, input):
         output = input + self.conv(input)
@@ -81,7 +133,7 @@ class resnet_block(nn.Module):
 
 # Set up generator model
 class generator_nn(nn.Module):
-    def __init__(self, in_chn, out_chn, nf=16, nb=8):
+    def __init__(self, in_chn, out_chn, nf=64, nb=8):
         # parameters
         super(generator_nn, self).__init__()
         self.input_channel = in_chn
@@ -110,9 +162,6 @@ class generator_nn(nn.Module):
 
         self.resnet = nn.Sequential(*self.resnet_blocks)
 
-        # check this alternative code works
-        # self.resnet = nn.Sequential([resnet_block(nf * 4, kernel_size=3, stride=1, padding=1) for i range(nb)])
-
         # up-convolution
         self.up_conv = nn.Sequential(
             nn.ConvTranspose2d(nf * 4, nf * 2, 3, 2, 1, 1),
@@ -127,7 +176,7 @@ class generator_nn(nn.Module):
             nn.Tanh(),
         )
 
-        helpers.initialize_weights(self)
+        initialize_weights(self)
 
     def forward(self, input):
         temp = self.down_conv(input)
