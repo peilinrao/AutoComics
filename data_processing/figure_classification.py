@@ -18,7 +18,8 @@ import time
 # 1. train model    #
 #####################
 
-def build_model():
+def build_model(size):
+    w, h = size
     model = Sequential()
     # CNN layer 1
     if K.image_data_format() == 'channels_first':
@@ -52,7 +53,7 @@ def build_model():
     # return model
     return model
 
-def train(weight_path, w, h, batch_size, train_size, model):
+def train(train_dir, valid_dir, weight_path, w, h, batch_size, train_size, model):
     train_datagen = ImageDataGenerator(
         rescale = 1./255,
         shear_range = 0.1,
@@ -60,16 +61,16 @@ def train(weight_path, w, h, batch_size, train_size, model):
         horizontal_flip = True)
 
     train_gen = train_datagen.flow_from_directory(
-        'data/train',
+        train_dir,
         target_size = (w, h),
         batch_size = batch_size,
         class_mode = 'binary'
         )
-    
+
     valid_datagen = ImageDataGenerator(rescale = 1./255)
-    
+
     valid_gen = valid_datagen.flow_from_directory(
-        'data/validation',
+        valid_dir,
         target_size = (w, h),
         batch_size = 10,
         class_mode = 'binary'
@@ -85,33 +86,40 @@ def train(weight_path, w, h, batch_size, train_size, model):
 
     model.save_weights(weight_path)
 
-# raw picture size: w, h = 1290, 692
-w, h = 430, 230
-batch_size = 16
-'''
-fig_size = len(next(os.walk('\\Users\calin\Desktop\AutoComics\Figure-Recognition\data\\train\figure'))[2])
-nonfig_size = len(next(os.walk('\\Users\calin\Desktop\AutoComics\Figure-Recognition\data\\train\nonfigure'))[2])
-train_size = (fig_size + nonfig_size)*5
-'''
-train_size = 436 * 5
-model = build_model()
-
-##train('figure_recog_v3.h5', w, h, batch_size, train_size, model)
-
 ################################
 # 2. apply figure recognition  #
 ################################
 
+def move_file(fname, target):
+    try:
+        shutil.move(fname, target)
+    except:
+        time.sleep(0.1)
+        move_file(fname, target)
+
 def apply_recognition(sample_dir, output_dir):
-    
+
+    # create new directory
+    try:
+        os.mkdir(output_dir)
+    except OSError:
+        print('out_dir already exists')
+        return
+
+    temp_dir = output_dir + '/temp'
+    dirs = [temp_dir, temp_dir+'/figure', temp_dir+'/nonfigure', output_dir+'/figure', output_dir+'/nonfigure']
+
+    for dir in dirs:
+        os.mkdir(dir)
+
     dir_list = os.listdir(sample_dir)
-    
+
     for f in dir_list:
         if os.path.isfile(output_dir+'/figure/'+f) or os.path.isfile(output_dir+'/nonfigure/'+f):
     ##        print(f+' already exists')
             continue
         shutil.copy(sample_dir+'/'+f, 'temp/figure')
-        
+
         test_datagen = ImageDataGenerator(rescale = 1./255)
         test_gen = test_datagen.flow_from_directory(
             'temp',
@@ -124,24 +132,52 @@ def apply_recognition(sample_dir, output_dir):
             steps = 1)
         prediction = np.round(prediction[0][0])
 ##        print(prediction)
-        
+
         # label 1 is non-figure label, 0 is figure label
         if prediction == 1:
             output = output_dir + '/nonfigure'
         else:
             output = output_dir + '/figure'
-        # exception
-        try:
-            shutil.move('temp/figure/'+f, output)
-            time.sleep(0.5)
-        except:
-            time.sleep(5)
-            os.remove('temp/figure/'+f)
+        # move to new file
+        move_file('temp/figure/'+f, output)
 
-model.load_weights('boolFigure_v3.h5')
+def main(size=[1290, 692], to_train=False, train_param=[None, None, 16, None], to_classify=False, classification_param=[None, None, None]):
+    '''
+    : to_train : boolean, whether the model should train
+    : train_param = [train_dir, valid_dir, size, batch_size, param_fname]
+        train_dir : directory of training set, consists of two subdirectories -- figure and nonfigure
+        valid_dir : directory of validation set, same structure
+        size : [width, height]
+        batch_size : default = 16
+        param_fname : file name of saved weight
+    : classification_param = [param, raw_dir, out_dir]
+        param : parameter file name
+        raw_dir : directory of raw images
+        out_dir : directory of processed images; out_dir cannot exist
+    : returns:
+        1. train the model
+        2. apply figure classification, and create a new directory to save outputs
+    '''
 
-sample_dir = '\\Users\calin\Desktop\AutoComics\data\\Totoro_smooth_pix3'
-output_dir = '\\Users\calin\Desktop\AutoComics\data' # a directory that contains 2 subdirectories: figure, nonfigure
+    model = build_model(size)
 
-apply_recognition(sample_dir, output_dir)
+    if to_train:
+        train_dir, valid_dir, size, batch_size, param_fname = train_param
 
+        # raw picture size: w, h = 1290, 692
+        w, h = size
+
+        fig_size = len(next(os.walk(train_dir+'/figure'))[2])
+        nonfig_size = len(next(os.walk(train_dir+'/nonfigure'))[2])
+        train_size = (fig_size + nonfig_size)*5
+
+        train(train_dir, valid_dir, param_fname, w, h, batch_size, train_size, model)
+
+    if to_classify:
+        param, raw_dir, out_dir = classification_param
+
+        ###
+        model.load_weights('figure_param_v3.h5')
+##        apply_recognition(raw_dir, out_dir)
+
+##main(to_classify=True)
