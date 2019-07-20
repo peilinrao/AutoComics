@@ -28,9 +28,8 @@ except:
     need_pretraining = 0
 
 G = generator.generator_nn(3,3)
-# if need_pretraining == 0:
-#         G.load_state_dict(torch.load("param/pretrained_G.pt"))
-#         print("Pretrained model loaded!")
+G.load_state_dict(torch.load("param/pretrained_G.pt"))
+print("Pretrained model loaded!")
 D = discriminator.discriminator_nn(3,1)
 G.train()
 D.train()
@@ -39,27 +38,6 @@ BCE_loss = nn.BCELoss()
 L1_loss = nn.L1Loss()
 G_optim = optims.Adam(G.parameters(), lr = LEARNING_RATE_G)
 D_optim = optims.Adam(D.parameters(), lr = LEARNING_RATE_D)
-
-
-##############################
-# Model pretraining with VGG #
-##############################
-if need_pretraining == 1:
-    print("pretraining")
-    anime_dataset = load_training_set("data_test/nonfigure_anime_test")
-    for epoch in range(num_epoch_pretrain):
-        print("epoch",epoch,"/",num_epoch_pretrain)
-        for batch_idx, (data, target) in enumerate(anime_dataset):
-            print("Starting batch",batch_idx, "/",len(anime_dataset))
-            G_optim.zero_grad()
-            x_val = VGG_model(data)
-            G_val = VGG_model(G(data))
-            loss = L1_loss(G_val, x_val)
-            loss.backward()
-            G_optim.step()
-
-        print("model pretrained for epoch",epoch,"now saving it")
-        torch.save(G.state_dict(), "param/pretrained_G.pt")
 
 
 ##################
@@ -91,7 +69,6 @@ for epoch in range(num_epoch_train):
             D_optim.zero_grad()
             d_real = D(y)
             dr_loss = BCE_loss(d_real, real)
-
 
             d_fake = D(G(x))
             df_loss = BCE_loss(d_fake, fake)
