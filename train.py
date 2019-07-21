@@ -7,66 +7,48 @@ import torch.optim as optims
 import numpy as np
 from torch.autograd import Variable
 import models
-import models.generator as generator
-import models.discriminator as discriminator
 import sys
 
 
 LEARNING_RATE_G = 0.002
 LEARNING_RATE_D = 0.002
-BATCH_SIZE = 8
+BATCH_SIZE = 4
 num_epoch_pretrain = 10
-num_epoch_train = 100
+num_epoch_train = 200
 ########################
 # Model initialization #
 ########################
-#if need_pretraining == 1, train the generator
-try:
-    need_pretraining = int(sys.argv[1])
-except:
-    # By default we assume that there is a pretrained model
-    need_pretraining = 0
+if torch.cuda.is_available():
+    print("Using GPU...")
+else:
+    print("Using CPU")
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-G = generator.generator_nn(3,3)
-# if need_pretraining == 0:
-#         G.load_state_dict(torch.load("param/pretrained_G.pt"))
-#         print("Pretrained model loaded!")
-D = discriminator.discriminator_nn(3,1)
+G = models.generator_nn(3,3)
+G.to(device)
+G.load_state_dict(torch.load("param/pretrained_G.pt"))
+print("Pretrained model loaded!")
+D = models.discriminator_nn(3,1)
+D.to(device)
 G.train()
 D.train()
-VGG_model = get_vgg19(16, True, "utils/vgg19-dcbb9e9d.pth")
-BCE_loss = nn.BCELoss()
-L1_loss = nn.L1Loss()
-G_optim = optims.Adam(G.parameters(), lr = LEARNING_RATE_G)
-D_optim = optims.Adam(D.parameters(), lr = LEARNING_RATE_D)
+VGG_model = models.get_vgg19(64, True, "utils/vgg19-dcbb9e9d.pth")
+VGG_model.to(device)
+VGG_model.eval()
+BCE_loss = nn.BCELoss().to(device)
+L1_loss = nn.L1Loss().to(device)
+G_optim = optims.Adam(G.parameters(), lr = LEARNING_RATE_G, betas=(0.5, 0.999))
+D_optim = optims.Adam(D.parameters(), lr = LEARNING_RATE_D, betas=(0.5, 0.999))
 
-
-##############################
-# Model pretraining with VGG #
-##############################
-if need_pretraining == 1:
-    print("pretraining")
-    anime_dataset = load_training_set("data_test/nonfigure_anime_test")
-    for epoch in range(num_epoch_pretrain):
-        print("epoch",epoch,"/",num_epoch_pretrain)
-        for batch_idx, (data, target) in enumerate(anime_dataset):
-            print("Starting batch",batch_idx, "/",len(anime_dataset))
-            G_optim.zero_grad()
-            x_val = VGG_model(data)
-            G_val = VGG_model(G(data))
-            loss = L1_loss(G_val, x_val)
-            loss.backward()
-            G_optim.step()
-
-        print("model pretrained for epoch",epoch,"now saving it")
-        torch.save(G.state_dict(), "param/pretrained_G.pt")
+G_scheduler = optims.lr_scheduler.MultiStepLR(optimizer=G_optim, milestones=[num_epoch_train // 2, num_epoch_train // 4 * 3], gamma=0.1)
+D_scheduler = optims.lr_scheduler.MultiStepLR(optimizer=D_optim, milestones=[num_epoch_train // 2, num_epoch_train // 4 * 3], gamma=0.1)
 
 
 ##################
 # Model Training #
 ##################
-anime_dataset = load_training_set("data_test/nonfigure_anime_test")
-train_real_scenery = load_training_set('data_test/nonfigure_realworld_test')
+anime_dataset = models.load_training_set("data_test/anime_test")
+train_real_scenery = models.load_training_set('data_test/nonfigure_realworld_test')
 
 # put this part of code into the main function
 
@@ -84,9 +66,9 @@ for epoch in range(num_epoch_train):
     count = 0
     for (x, _), (y, _) in zip(anime_dataset, train_real_scenery):
         print("batch info:",count)
+        G_scheduler.step()
+        D_scheduler.step()
         count+=1
-
-        print("starting training")
         try:
             D_optim.zero_grad()
             d_real = D(y)

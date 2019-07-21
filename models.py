@@ -7,7 +7,7 @@ import torch.optim as optims
 import numpy as np
 from torch.autograd import Variable
 
-BATCH_SIZE = 8
+BATCH_SIZE = 4
 IMAGE_SIZE = 256
 ####################
 # Helper functions #
