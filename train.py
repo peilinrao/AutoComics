@@ -18,7 +18,6 @@ num_epoch_train = 200
 ########################
 # Model initialization #
 ########################
-<<<<<<< HEAD
 if torch.cuda.is_available():
     print("Using GPU...")
 else:
@@ -43,26 +42,6 @@ D_optim = optims.Adam(D.parameters(), lr = LEARNING_RATE_D, betas=(0.5, 0.999))
 
 G_scheduler = optims.lr_scheduler.MultiStepLR(optimizer=G_optim, milestones=[num_epoch_train // 2, num_epoch_train // 4 * 3], gamma=0.1)
 D_scheduler = optims.lr_scheduler.MultiStepLR(optimizer=D_optim, milestones=[num_epoch_train // 2, num_epoch_train // 4 * 3], gamma=0.1)
-=======
-#if need_pretraining == 1, train the generator
-try:
-    need_pretraining = int(sys.argv[1])
-except:
-    # By default we assume that there is a pretrained model
-    need_pretraining = 0
-
-G = generator.generator_nn(3,3)
-G.load_state_dict(torch.load("param/pretrained_G.pt"))
-print("Pretrained model loaded!")
-D = discriminator.discriminator_nn(3,1)
-G.train()
-D.train()
-VGG_model = get_vgg19(16, True, "utils/vgg19-dcbb9e9d.pth")
-BCE_loss = nn.BCELoss()
-L1_loss = nn.L1Loss()
-G_optim = optims.Adam(G.parameters(), lr = LEARNING_RATE_G)
-D_optim = optims.Adam(D.parameters(), lr = LEARNING_RATE_D)
->>>>>>> 816cdbbdd3bb353dd44ae12c8ee0003fd45aaa30
 
 
 ##################
