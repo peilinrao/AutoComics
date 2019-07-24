@@ -11,7 +11,6 @@ import models.generator as generator
 import models.discriminator as discriminator
 import sys
 
-
 LEARNING_RATE_G = 0.002
 LEARNING_RATE_D = 0.002
 BATCH_SIZE = 8
@@ -40,13 +39,33 @@ G_optim = optims.Adam(G.parameters(), lr = LEARNING_RATE_G)
 D_optim = optims.Adam(D.parameters(), lr = LEARNING_RATE_D)
 
 
-##################
-# Model Training #
-##################
+##############################
+# Model pretraining with VGG #
+##############################
+if need_pretraining == 1:
+    print("pretraining")
+    anime_dataset = load_training_set("data_test/nonfigure_anime_test")
+    for epoch in range(num_epoch_pretrain):
+        print("epoch",epoch,"/",num_epoch_pretrain)
+        for batch_idx, (data, target) in enumerate(anime_dataset):
+            print("Starting batch",batch_idx, "/",len(anime_dataset))
+            G_optim.zero_grad()
+            x_val = VGG_model(data)
+            G_val = VGG_model(G(data))
+            loss = L1_loss(G_val, x_val)
+            loss.backward()
+            G_optim.step()
+
+        print("model pretrained for epoch",epoch,"now saving it")
+        torch.save(G.state_dict(), "param/pretrained_G.pt")
+
+
+#######################
+# Main Training Model #
+#######################
+
 anime_dataset = load_training_set("data_test/nonfigure_anime_test")
 train_real_scenery = load_training_set('data_test/nonfigure_realworld_test')
-
-# put this part of code into the main function
 
 # initialize zero and one matrix
 real = torch.ones(BATCH_SIZE, 1, 64, 64)
