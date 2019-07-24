@@ -15,11 +15,11 @@ import sys
 
 
 # See how the trained network perform
-G = generator.generator_nn(3,3)
+G = models.generator_nn(3,3)
 G.load_state_dict(torch.load("param/generator_param.pt"))
-
-image = Image.open("results/coast_test.jpg")
-torchvision.transforms.Resize((256,256))
+p = torchvision.transforms.Compose([torchvision.transforms.Resize((256,256))])
+image = Image.open("results/beach.jpg")
+image = p(image)
 image = ToTensor()(image).unsqueeze(0)
 image = G(image).squeeze(0)
 plt.imshow(ToPILImage()(image))

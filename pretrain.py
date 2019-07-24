@@ -38,7 +38,7 @@ G_optim = optims.Adam(G.parameters(), lr = LEARNING_RATE_G)
 ####################
 
 print("Start pretraining")
-anime_dataset = models.load_training_set("data_test/nonfigure_anime_test")
+anime_dataset = models.load_training_set("data_test/anime_test")
 for epoch in range(num_epoch_pretrain):
     print("epoch",epoch,"/",num_epoch_pretrain)
     for batch_idx, (data, target) in enumerate(anime_dataset):
