@@ -15,7 +15,7 @@ def blur(raw_dir, out_dir, sigma=3):
 
         blur_img = Image.fromarray(ED.blur_img)
         blur_img.save(out_dir+'/'+fname)
-    
+
     print('edge promotion finishes')
 
-blur('in', 'out')
+blur('../data/figure_anime_totoro', '../data/figure_anime_totoro_edge')
