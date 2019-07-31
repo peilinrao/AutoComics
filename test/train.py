@@ -8,6 +8,7 @@ from keras.layers import ReLU, LeakyReLU, Dropout
 from keras.layers import BatchNormalization
 from keras.layers import Add
 from keras.optimizers import Adam, RMSprop
+import keras.backend as K
 from keras.preprocessing.image import ImageDataGenerator
 
 class CartoonGAN(object):
@@ -170,6 +171,14 @@ class CartoonGAN(object):
         self.AM.compile(loss='binary_crossentropy', optimizer=optim, metrics=['accuracy'])
         return self.AM
 
+    # ===== util methods ======
+    def adversarial_loss(self):
+
+        def loss(y_true, y_pred):
+            return K.mean()
+
+        return loss
+
 class model():
     def __init__(self, args):
         self.args = args
@@ -213,12 +222,13 @@ class model():
         # ====== save model ======
         self.save(self.generator)
 
-    def test(self, plot_sample=True):
+    def test(self, plot_sample=False):
         test = get_test(self)
         result = self.generator.predict()
         if plot_sample:
             image = result[0]
             self.plot_image(image)
+        return result
 
     def get_train_batch(self):
         cartoon_dir = self.args['cartoon_dir']
@@ -309,4 +319,8 @@ def arguments():
 args = arguments()
 model = model(args)
 model.train()
-model.test()
+result = model.test()
+np.save('result.npy', result)
+'''
+result = np.load('result.npy')
+'''
