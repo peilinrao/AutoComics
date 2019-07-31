@@ -195,6 +195,7 @@ class model():
         nepoch = self.args['nepoch']
         nbatch = self.args['nbatch']
         batch_size = self.args['batch_size']
+        save_param = self.args['save_param']
         for epoch in range(nepoch):
             log = 'epoch: %d / %d' % (epoch, nepoch)
             print(log)
@@ -217,17 +218,24 @@ class model():
                 print(log)
         log = '------ finish training ------'
         print(log)
-        log = '------ save model ------'
+        log = '------ saving model ------'
         print(log)
         # ====== save model ======
-        self.save(self.generator)
+        self.save(save_param, self.generator)
+        log = '------ parameters saved ------'
+        print(log)
 
     def test(self, plot_sample=False):
-        test = get_test(self)
-        result = self.generator.predict()
+        log = '------ start testing ------'
+        print(log)
+        test_batch = self.get_test()
+        print(test_batch.shape)
+        result = self.generator.predict(test_batch)
         if plot_sample:
             image = result[0]
             self.plot_image(image)
+        log = '------ finish testing ------'
+        print(log)
         return result
 
     def get_train_batch(self):
@@ -270,7 +278,8 @@ class model():
         test_dir = self.args['test_dir']
         row = self.args['row']
         col = self.args['col']
-        batch_size = len([f for f in os.listdir(test_dir) if os.path.isfile(os.path.join(test_dir, f))])
+        zero_dir = os.path.join(test_dir, '0')
+        batch_size = len([f for f in os.listdir(zero_dir) if os.path.isfile(os.path.join(zero_dir, f))])
         datagen = ImageDataGenerator(
             rescale = 1./255,
             data_format = 'channels_last'
@@ -282,14 +291,14 @@ class model():
             shuffle = False,
             class_mode = None
         )
-        return test
+        return test[0]
 
     def plot_image(self, image):
         plt.imshow(image)
         plt.show()
 
-    def save(self, model):
-        return
+    def save(self, fname, model):
+        model.save_weights(fname)
 
 def arguments():
     args = {
@@ -297,17 +306,17 @@ def arguments():
         'cartoon_dir' : 'data/train/cartoon',
         'photo_dir' : 'data/train/photo',
         'test_dir' : 'data/test',
-        'save_param' : None,
+        'save_param' : 'gen_param.h5',
     # ====== train level ======
         'nepoch_pretrain' : 10,
-        'nepoch' : 100,
+        'nepoch' : 50,
         'nbatch' : 100,
-        'batch_size' : 16,
+        'batch_size' : 4,
     # ====== model level ======
         'row' : 256,
         'col' : 256,
-        'ndfeature' : 16,
-        'ngfeature' : 32,
+        'ndfeature' : 8,
+        'ngfeature' : 16,
         'nblock' : 8,
         'nblock' : 8,
         'lrD' : 1e-5,
@@ -318,9 +327,12 @@ def arguments():
 # ====== main method ======
 args = arguments()
 model = model(args)
-model.train()
+#model.train()
+model.generator.load_weights('gen_param.h5')
 result = model.test()
-np.save('result.npy', result)
+plt.imshow(result[0])
+plt.show()
 '''
+np.save('result.npy', result)
 result = np.load('result.npy')
 '''
